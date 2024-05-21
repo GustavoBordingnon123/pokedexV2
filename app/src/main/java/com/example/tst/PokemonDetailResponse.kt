@@ -1,35 +1,36 @@
 package com.example.tst
 
 data class PokemonDetailResponse(
+    val id: Int,
+    val name: String,
     val abilities: List<AbilityDetail>,
-    val base_experience: Int,
     val sprites: SpritesDetail,
     val types: List<TypeDetail>,
-    val weight: Int
+    val weight: Int,
+    val height: Int,
+    val game_indices: List<GameIndexDetail>
 )
 
 data class AbilityDetail(
-    val ability: AbilityInfo,
-    val is_hidden: Boolean,
-    val slot: Int
+    val ability: AbilityInfo
 )
 
 data class AbilityInfo(
-    val name: String,
-    val url: String
+    val name: String
 )
 
 data class SpritesDetail(
-    val front_default: String?,
-    val back_default: String?,
+    val front_default: String?
 )
 
 data class TypeDetail(
-    val slot: Int,
     val type: TypeInfo
 )
 
 data class TypeInfo(
-    val name: String,
-    val url: String
+    val name: String
+)
+
+data class GameIndexDetail(
+    val game_index: Int
 )

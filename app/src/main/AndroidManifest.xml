@@ -15,7 +15,7 @@
         android:theme="@style/Theme.Tst"
         tools:targetApi="31">
         <activity
-            android:name=".activity_pokemon_detail"
+            android:name=".PokemonDetailViewModel"
             android:exported="false" />
         <activity
             android:name=".tst"
@@ -26,6 +26,7 @@
         <activity
             android:name=".RegisterActivity"
             android:exported="false" />
+        <activity android:name=".PokemonDetailActivity" />
         <activity
             android:name=".MainActivity"
             android:exported="true">

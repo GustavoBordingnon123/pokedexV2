@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Tst</string>
+    <!-- Outras strings já existentes -->
+    <string name="game_index">Game Index: %d</string>
+    <string name="height">Height: %d dm</string>
+    <string name="weight">Weight: %d hg</string>
 </resources>

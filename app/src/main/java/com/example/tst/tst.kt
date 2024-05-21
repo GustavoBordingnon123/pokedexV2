@@ -1,5 +1,6 @@
 package com.example.tst
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
@@ -14,60 +15,93 @@ import retrofit2.Response
 class tst : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
-    private lateinit var adapter: PokemonAdapter
-    private val pokemonList = mutableListOf<PokemonData>()
+    private lateinit var pokemonAdapter: PokemonAdapter
+    private lateinit var placeholderTextView: TextView
+    private lateinit var morePokemonButton: Button
+    private var pokemonList = mutableListOf<PokemonData>()
     private var offset = 0
     private val limit = 30
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_tst)
+        setContentView(R.layout.activity_main)
 
-        // Recuperar o nome do usuário passado pelo Intent
-        val username = intent.getStringExtra("USERNAME")
-        val placeholderTextView = findViewById<TextView>(R.id.placeholderTextView)
-        placeholderTextView.text = "Bem vindo, $username"
+        // Recuperar nome do usuário
+        val sharedPreferences = getSharedPreferences("loginPrefs", MODE_PRIVATE)
+        val username = sharedPreferences.getString("username", "usuario")
+
+        // Configurar TextView de boas-vindas
+        placeholderTextView = findViewById(R.id.placeholderTextView)
+        placeholderTextView.text = "Bem vindo $username"
 
         recyclerView = findViewById(R.id.pokemonRecyclerView)
         recyclerView.layoutManager = GridLayoutManager(this, 2)
-        adapter = PokemonAdapter(pokemonList)
-        recyclerView.adapter = adapter
-
-        fetchPokemonData(limit, offset)
-
-        findViewById<Button>(R.id.morePokemon).setOnClickListener {
-            offset += limit
-            fetchPokemonData(limit, offset)
+        pokemonAdapter = PokemonAdapter(pokemonList) { pokemonData ->
+            val intent = Intent(this, PokemonDetailActivity::class.java).apply {
+                putExtra("IMAGE_URL", pokemonData.imageUrl)
+                putExtra("NAME", pokemonData.name)
+                putExtra("ABILITIES", pokemonData.abilities)
+                putExtra("GAME_INDEX", pokemonData.gameIndex)
+                putExtra("TYPES", pokemonData.types)
+                putExtra("HEIGHT", pokemonData.height)
+                putExtra("WEIGHT", pokemonData.weight)
+            }
+            startActivity(intent)
         }
+        recyclerView.adapter = pokemonAdapter
+
+        morePokemonButton = findViewById(R.id.morePokemon)
+        morePokemonButton.setOnClickListener {
+            loadPokemonData()
+        }
+
+        // Carregar dados iniciais
+        loadPokemonData()
     }
 
-    private fun fetchPokemonData(limit: Int, offset: Int) {
-        ApiClient.apiService.getPokemonList(limit, offset).enqueue(object : Callback<PokemonResponse> {
+    private fun loadPokemonData() {
+        val apiService = RetrofitClientInstance.retrofitInstance.create(PokeApiService::class.java)
+        val call = apiService.getPokemonList(offset, limit)
+
+        call.enqueue(object : Callback<PokemonResponse> {
             override fun onResponse(call: Call<PokemonResponse>, response: Response<PokemonResponse>) {
                 if (response.isSuccessful) {
-                    val pokemonResponse = response.body()
-                    pokemonResponse?.results?.forEach { result ->
-                        ApiClient.apiService.getPokemonDetail(result.url).enqueue(object : Callback<PokemonDetailResponse> {
+                    val pokemonResults = response.body()?.results ?: emptyList()
+                    for (pokemon in pokemonResults) {
+                        val detailCall = apiService.getPokemonDetail(pokemon.name)
+                        detailCall.enqueue(object : Callback<PokemonDetailResponse> {
                             override fun onResponse(call: Call<PokemonDetailResponse>, response: Response<PokemonDetailResponse>) {
                                 if (response.isSuccessful) {
-                                    val pokemonDetail = response.body()
-                                    val types = pokemonDetail?.types?.joinToString(", ") { it.type.name }
-                                    val imageUrl = pokemonDetail?.sprites?.front_default ?: ""
-                                    pokemonList.add(PokemonData(0, result.name.capitalize(), types ?: "", "", imageUrl))
-                                    adapter.notifyDataSetChanged()
+                                    response.body()?.let { detail ->
+                                        val pokemonData = PokemonData(
+                                            id = detail.id,
+                                            name = detail.name,
+                                            type1 = detail.types[0].type.name,
+                                            type2 = if (detail.types.size > 1) detail.types[1].type.name else "",
+                                            imageUrl = detail.sprites.front_default ?: "",
+                                            abilities = detail.abilities.joinToString(", ") { it.ability.name },
+                                            gameIndex = detail.game_indices.firstOrNull()?.game_index ?: 0,
+                                            types = detail.types.joinToString(", ") { it.type.name },
+                                            height = detail.height,
+                                            weight = detail.weight
+                                        )
+                                        pokemonList.add(pokemonData)
+                                        pokemonAdapter.notifyItemInserted(pokemonList.size - 1)
+                                    }
                                 }
                             }
 
                             override fun onFailure(call: Call<PokemonDetailResponse>, t: Throwable) {
-                                Log.e("API_ERROR", "Failed to fetch Pokemon detail", t)
+                                Log.e("API_CALL", "Error fetching pokemon details", t)
                             }
                         })
                     }
+                    offset += limit
                 }
             }
 
             override fun onFailure(call: Call<PokemonResponse>, t: Throwable) {
-                Log.e("API_ERROR", "Failed to fetch data", t)
+                Log.e("API_CALL", "Error fetching pokemon list", t)
             }
         })
     }

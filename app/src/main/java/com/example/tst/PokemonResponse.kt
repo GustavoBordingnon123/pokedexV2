@@ -1,10 +1,10 @@
 package com.example.tst
 
 data class PokemonResponse(
-    val results: List<PokemonResult>
+    val results: List<Pokemon>
 )
 
-data class PokemonResult(
+data class Pokemon(
     val name: String,
     val url: String
 )
