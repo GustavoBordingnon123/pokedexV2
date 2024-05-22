@@ -3,6 +3,8 @@
 //
 //@Entity(tableName = "users")
 //data class User(
-//    @PrimaryKey val username: String,
+//    @PrimaryKey(autoGenerate = true)
+//    val id: Long = 0,
+//    val username: String,
 //    val password: String
 //)

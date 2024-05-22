@@ -1,12 +1,9 @@
 //import androidx.room.Dao
 //import androidx.room.Insert
-//import androidx.room.Query
+//import androidx.room.OnConflictStrategy
 //
 //@Dao
 //interface UserDao {
-//    @Insert
+//    @Insert(onConflict = OnConflictStrategy.REPLACE)
 //    suspend fun insert(user: User)
-//
-//    @Query("SELECT * FROM users WHERE username = :username LIMIT 1")
-//    suspend fun getUser(username: String): User?
 //}
