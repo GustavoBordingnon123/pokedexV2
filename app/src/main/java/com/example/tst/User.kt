@@ -1,10 +1,10 @@
-//import androidx.room.Entity
-//import androidx.room.PrimaryKey
-//
-//@Entity(tableName = "users")
-//data class User(
-//    @PrimaryKey(autoGenerate = true)
-//    val id: Long = 0,
-//    val username: String,
-//    val password: String
-//)
+package com.example.tst
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "users")
+data class User(
+    @PrimaryKey val username: String,
+    val password: String
+)
